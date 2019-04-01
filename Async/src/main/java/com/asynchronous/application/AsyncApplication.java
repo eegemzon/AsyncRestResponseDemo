@@ -12,11 +12,6 @@ public class AsyncApplication {
 		SpringApplication.run(AsyncApplication.class, args);
 	}
 
-	@Bean
-	public RestTemplate getRestTemplate() {
-		return new RestTemplate();
-	}
-	
 	/*
 	 * @Bean(name = "threadPoolTaskExecutor") public Executor
 	 * threadPoolTaskExecutor() { return new ThreadPoolTaskExecutor(); }

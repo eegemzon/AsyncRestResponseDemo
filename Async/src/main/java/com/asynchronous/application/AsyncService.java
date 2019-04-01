@@ -1,6 +1,7 @@
 package com.asynchronous.application;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +9,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
- * Wraps the Synchronous CallerService to make it asynchronous with CompletableFuture
+ * Wraps the Synchronous CallerService to make it asynchronous with
+ * CompletableFuture
+ * 
  * @author eineil.eric.c.gemzon
  *
  */
@@ -22,19 +25,38 @@ public class AsyncService {
 	public AsyncService(CallerService callerService) {
 		this.callerService = callerService;
 	}
-	
+
 	@Async
-	public CompletableFuture<Domain> getDomain(int id) {
+	public CompletableFuture<ExternalResponse<Domain>> getDomain(int id) {
 		LOGGER.info("calling callerService.getDomain");
-		Domain domain = callerService.getDomain(id);
-		return CompletableFuture.completedFuture(domain);
+		return CompletableFuture.supplyAsync(() -> callerService.getDomain(id))
+				.orTimeout(25, TimeUnit.SECONDS)
+				.handle((value, ex) -> {
+					if (ex == null) {
+						System.out.println("no exception occurred");
+						return new ExternalResponse<Domain>(false, value);
+					}
+					return new ExternalResponse<Domain>(true, new Domain(1, "defaultData", "defaultDesc"));
+				});
 	}
-	
+
 	@Async
-	public CompletableFuture<Entity> getEntity(int id) {
+	public CompletableFuture<ExternalResponse<Entity>> getEntity(int id) {
 		LOGGER.info("Calling callerService.getEntity");
-		Entity entity = callerService.getEntity(id);
-		return CompletableFuture.completedFuture(entity);
+		return CompletableFuture.supplyAsync(() -> callerService.getEntity(id))
+				.orTimeout(25, TimeUnit.SECONDS)
+				.handle((value, ex) -> {
+					if (ex == null) {
+						System.out.println("no exception occurred");
+						return new ExternalResponse<Entity>(false, value);
+					}
+					return new ExternalResponse<Entity>(true, new Entity(2, "Default Descriptionentity"));
+				});
 	}
-	
+
+	public void something() {
+
+	}
+
+	// TODO: call the two mono service from caller service
 }
